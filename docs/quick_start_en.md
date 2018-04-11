@@ -9,7 +9,7 @@ permalink: /en/docs/quick_start/
 
 This quick start guide will demonstrate how to:
 
-* create, configure, and interact with OpenStack cloud and Virtual Machines (VMs)
+* create, configure, and interact with OpenStack cloud and CANFAR Virtual Machines (VMs)
 * store files with the CANFAR VOSpace storage
 * launch batch processing jobs from the CANFAR batch host, using VMs created in the previous step
 
@@ -17,11 +17,11 @@ Before starting this example, you will need to have a CANAR/CADC account ([regis
 
 ## Resource Allocation
 
-email support@canfar.net include your account name, the amount of resource require (storage volume and processing capacity) and a a few sentences of justification.  Your request will be reviewed and you will be contacted by our support group. 
+Email support@canfar.net and include your account name, a rough amount of required resources (storage capacity and processin capabilitiesg), and a a few sentences of justification.  Your request will be reviewed and you will be contacted by our support group.
 
 ## Create your interactive Virtual Machine
 
-To manage the VMs with OpenStack, we suggest using the  dashboard at Compute Canada. [Log into the dashboard](https://west.cloud.computecanada.ca). Provide your CANFAR username, adding a ```-canfar``` suffix, e.g, ```janesmith-canfar```, and your usual CANFAR password. We will refer the CANFAR username (excluding the ```-canfar``` suffix which is only used for logging into the dashboard) as ```[username]``` throughout this document.
+To access and manage your VMs with OpenStack, we suggest using the  dashboard at Compute Canada. [Log into the dashboard](https://west.cloud.computecanada.ca). Provide your CANFAR username, adding a ```-canfar``` suffix, e.g, ```janesmith-canfar```, and your usual CANFAR password. We will refer the CANFAR username (excluding the ```-canfar``` suffix which is only used for logging into the dashboard) as ```[username]``` throughout this document.
 
 Each resource allocation corresponds to an OpenStack **tenant** or **project** (these two names are used interchangeably). A user may be a member of multiple tenants, and a tenant usually has multiple users. A pull-down menu near the top-left allows you to select between the different tenants that you are a member of.
 
@@ -49,10 +49,10 @@ Each tenant/project will typically have one public IP. If you have already alloc
 
 ### Launch a VM
 
-We will now launch a VM with Ubuntu 16.04.
+We will now launch a VM with Ubuntu 16.04. We support two distributions: Ubuntu LTS and CentOS VMs.
 
 * Switch to the **Images** window (left-hand column), and then click on the **Public** button at top right (it might be already selected.
-* Select ```ubuntu-server-16.04-amd64``` and click on the **Launch Instance** button on the right.
+* Select ```canfar-ubuntu-16.04.4``` and click on the **Launch Instance** button on the right.
 * In the **Details** tab choose a meaningful **Instance Name**. **Flavor** is the hardware profile for the VM. ```c2-7.5gb-80``` provides the minimal requirements of 2 cores, 7.5GB or RAM for most VMs. Note that it provides an 80 GB *ephemeral disk* that will be used as scratch space for batch processing. **Availability Zone** should be left empty, and **Instance Count** 1.
 * In the **Access & Security** tab ensure that your public key is selected, and the ```default``` security group (with ssh rule added) is selected.
 * Finally, click the **Launch** button.
@@ -88,36 +88,12 @@ ssh ubuntu@[floating ip]
 
 </div>
 
-### Create a user on the VM
-
-You might need to create a different user than the default one, and for batch processing to work, it is presently necessary for you to create a user on the VM with your CANFAR username. You can use a wrapper script for this:
-
-<div class="shell">
-
-{% highlight bash %}
-curl https://raw.githubusercontent.com/canfar/openstack-sandbox/master/scripts/canfar_create_user.bash -o canfar_create_user.bash
-sudo bash canfar_create_user.bash [username]
-{% endhighlight %}
-
-</div>
-
-Now, exit the VM, and re-connect with your CANFAR username instead of the standard ubuntu username:
-
-<div class="shell">
-
-{% highlight bash %}
-exit
-ssh [username]@[floating_ip]
-{% endhighlight %}
-
-</div>
-
 ### Install software on the VM
 
-The VM operating system has only a minimal set of packages. For this example, we will use:
+The default operating system has only a minimal set of packages. For this example, we will use:
 
 * the [SExtractor](http://www.astromatic.net/software/sextractor) package to create catalogues of stars and galaxies.
-* We also need to read FITS images. Most FITS images from CADC come Rice-compressed with an `fz` extension. SExtractor only reads uncompressed images, so we also need the ```funpack``` utility to uncompress the incoming data. The ```funpack``` executable is included in the package ```libcfitsio-bin```.
+* We also need to read FITS images. Most FITS images from CADC come Rice-compressed with an `fz` extension. SExtractor only reads uncompressed images, so we also need the ```funpack``` utility to uncompress the incoming data. The ```funpack``` executable is included in the package ```libcfitsio-bin``` in Ubuntu.
 
 Let's install them both system wide after a fresh update of the Ubuntu repositories:
 
@@ -132,15 +108,13 @@ sudo apt install -y sextractor libcfitsio-bin
 
 ### Test the Software on the VM
 
-We are now ready to do a simple test. Let’s download a FITS image to our scratch space. When we instantiated the VM we chose a flavour with an ephemeral disk. First, execute the following script to mount this device at `/ephemeral` and create a work directory to mimic the batch processing environment (note that this will be done automatically for batch jobs):
+We are now ready to do a simple test. Let’s download a FITS image to our scratch space. When we instantiated the VM we chose a flavour with an ephemeral disk, which was automatically mounted in ```/mnt```. You want to access the ephemeral disk with a non-root user and create a work directory to mimic the batch processing environment (note that this will be done automatically for batch jobs):
 
 <div class="shell">
 
 {% highlight bash %}
-curl https://raw.githubusercontent.com/canfar/openstack-sandbox/master/scripts/canfar_mount_ephemeral.bash -o canfar_mount_ephemeral.bash
-sudo bash canfar_mount_ephemeral.bash
-sudo mkdir /ephemeral/work
-sudo chown [username]:[username] /ephemeral/work
+sudo mkdir /mnt/work
+sudo chmod 777 /mnt/work
 {% endhighlight %}
 
 </div>
@@ -150,7 +124,7 @@ Next, enter the directory, copy an astronomical image there, and run SExtractor 
 <div class="shell">
 
 {% highlight bash %}
-cd /ephemeral/work
+cd /mnt/work
 cp /usr/share/sextractor/default* .
 rm default.param
 echo 'NUMBER
@@ -167,27 +141,15 @@ The image `1056213p.fits` is a Multi-Extension FITS file with 36 extensions, eac
 
 ## Store results on the CANFAR VOSpace
 
-All data stored on the VM and ephemeral disk since the last time it was saved are normally **wiped out** when the VM shuts down). We will use the [CANFAR VOSpace](/docs/vospace/) to store the result.
-We want to store the output catalogue `1056213p.cat` at a persistent, externally-accessible location. We will use the CANFAR VOSpace for this purpose. To store anything on the CANFAR VOSpace from a command line, you will need the CANFAR VOSpace client.
+All data stored on the the ephemeral disk since the last time it was saved are normally **wiped out** when the VM shuts down). We will use the [CANFAR VOSpace](/docs/vospace/) to store the result.
+We want to store the output catalogue `1056213p.cat` at a persistent, externally-accessible location. We will use the CANFAR VOSpace for this purpose. To store anything on the CANFAR VOSpace from a command line, you will need the CANFAR VOSpace client which is already installed.
+
+For an automated procedure to access VOSpace on your behalf, your proxy authorization must be present on the VM. You can accomplish this using a `.netrc` file that contains your CANFAR user name and password, and the command **getCert** can obtain an *X509 Proxy Certificate* using that username/password combination without any further user interaction. The commands below will create the file.
 
 <div class="shell">
 
 {% highlight bash %}
-sudo apt install -y python-pip
-sudo pip install vos
-
-{% endhighlight %}
-
-</div>
-
- For an automated procedure to access VOSpace on your behalf, your proxy authorization must be present on the VM. You can accomplish this using a `.netrc` file that contains your CANFAR user name and password, and the command **getCert** can obtain an *X509 Proxy Certificate* using that username/password combination without any further user interaction. The commands below will create the file and install the VOSpace utilities.
-
-<div class="shell">
-
-{% highlight bash %}
-echo "machine www.canfar.phys.uvic.ca login [username] password [password]" > ~/.netrc
-chmod 600 ~/.netrc
-getCert
+canfar_dotnetrc
 {% endhighlight %}
 
 </div>
@@ -243,7 +205,7 @@ Now let's test the newly created script with a different file ID. The ```do_cata
 <div class="shell">
 
 {% highlight bash %}
-cd /ephemeral/work
+cd /mnt/work
 ~/do_catalog.bash 1056214p
 {% endhighlight %}
 
@@ -263,16 +225,16 @@ scp [username]@[floating_ip]:do_catalog.bash .
 
 ### Install HTCondor for Batch
 
-Batch jobs are scheduled using a software package called [HTCondor](http://www.htcondor.org). HTCondor will dynamically launch jobs on the VMs (workers), connecting to the batch processing head node (the central manager). In order to install HTCondor (which provides a minimal HTCondor daemon to execute jobs) run this script on your VM instance:
+Batch jobs are scheduled using a software package called [HTCondor](http://www.htcondor.org). HTCondor will dynamically launch jobs on the VMs (workers), connecting to the batch processing head node (the central manager). In order to install HTCondor (which provides a minimal HTCondor daemon to execute jobs) run this script which will install HTCondor for you on your VM instance:
 
 <div class="shell">
 
 {% highlight bash %}
-curl https://raw.githubusercontent.com/canfar/openstack-sandbox/master/vm_config/canfar_batch_setup.bash -o canfar_batch_setup.bash
-sudo bash canfar_batch_setup.bash
+sudo bash canfar_batch_prepare
 {% endhighlight %}
 
 </div>
+
 
 ### Snapshot (save) the VM Instance
 
@@ -305,13 +267,6 @@ Let's write a submission file that will transfer the `do_catalog.bash` script to
 <div class="shell">
 
 {% highlight text %}
-Universe   = vanilla
-should_transfer_files = YES
-when_to_transfer_output = ON_EXIT_OR_EVICT
-environment = "HOME=/home/[username]"
-RunAsOwner = True
-
-transfer_output_files = /dev/null
 
 Executable = do_catalog.bash
 
@@ -341,8 +296,6 @@ Queue
 {% endhighlight %}
 
 </div>
-
-Again, be sure to substitue the correct value for `[username]`. It is important to set this ```HOME``` environment variable so that the running job will be able to locate the ```.netrc``` file with VOSpace credentials.
 
 Save the submission file as `myjobs.sub`.
 
@@ -396,4 +349,3 @@ condor_status -submitter
 Once you have no more jobs in the queue, check the logs and output files `myjobs.*` on the batch host, and check on your VOSpace browser. All 4 of the generated catalogues should have been uploaded.
 
 You are done!
-
