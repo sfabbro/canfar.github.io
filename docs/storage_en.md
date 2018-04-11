@@ -8,7 +8,7 @@ permalink: /en/docs/storage/
 
 ## Introduction
 
-VOSpace is the CANFAR storage system , an implementation of	the [Virtual Observatory Specification](http://www.ivoa.net/Documents/VOSpace/).
+VOSpace is the CANFAR storage system, an implementation of the [Virtual Observatory Specification](http://www.ivoa.net/Documents/VOSpace/).
 It is intended to be used for storing the output of the CANFAR processing system and also for sharing files between members of a collaboration.
 If the data you want to process is not already on a CADC archive, you can stage it on a VOSpace for further processing. Files in VOSpace are mirrored in four physical locations, so they are secure against disk failure.
 
@@ -35,7 +35,7 @@ The VOspace can also be accessed via some commands on a terminal or a script. Th
 
 ### Installation
 
-Below are the installation steps.  (NOTE:  `vos` is installed on the CANFAR batch host)
+Below are the installation steps.  (NOTE: `vos` is already installed on the CANFAR VM images, and the CANFAR batch host)
 
 Steps:
 - Ensure Python is up-to-date
@@ -61,7 +61,7 @@ pip install -U vos
 
 # If you didn't use anaconda a user install is required (you still need pip):
 pip install --user -U vos
-# You might also need to update your path:
+# In this case, You might also need to update your path:
 export PATH="${HOME}/.local/bin:${PATH}"
 {% endhighlight %}
 </div>
@@ -158,7 +158,7 @@ This technique uses a [FUSE](http://en.wikipedia.org/wiki/Filesystem_in_Userspac
 #### FUSE
 ##### Linux
 
-* On some ditros (RHEL 5, CentOS 5, Scientific Linux 5) you may need to add the fuse library:
+* On some old Linux distributions (RHEL 5, CentOS 5, Scientific Linux 5), you may need to add the fuse library:
 
 <div class="shell">
 
