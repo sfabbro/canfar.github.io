@@ -36,12 +36,6 @@ A typical job will be like this:
 <div class="shell">
 
 {% highlight text %}
-Universe   = vanilla
-should_transfer_files = YES
-when_to_transfer_output = ON_EXIT_OR_EVICT
-RunAsOwner = True
-
-transfer_output_files = /dev/null
 
 executable = myexec.bash
 
@@ -115,7 +109,7 @@ canfar_submit myjob.jdl my_vm_image c8-30gb-380
 
 
 ### Checking Job Status
-`HTCondor` offers a great deal of command line tools to check the status of the VM and the job. Below is a basic list of typical HTCondor commands for job management. For a more exhaustive list of commands, we refere the reader to the official [HTCondor user documentation](http://research.cs.wisc.edu/htcondor/manual/v8.4/2_Users_Manual.html) or a good overview and cheat sheet on [SIEpedia](http://www.iac.es/sieinvens/siepedia/pmwiki.php?n=HOWTOs.Condor).
+`HTCondor` offers a great deal of command line tools to check the status of the VM and the job. Below is a basic list of typical HTCondor commands for job management. For a more exhaustive list of commands, we refere the reader to the official [HTCondor user documentation](http://research.cs.wisc.edu/htcondor/manual/current/2_Users_Manual.html) or a good overview and cheat sheet on [SIEpedia](http://www.iac.es/sieinvens/siepedia/pmwiki.php?n=HOWTOs.Condor).
 
 Check the status of the global queue:
 
