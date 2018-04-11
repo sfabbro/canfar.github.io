@@ -20,13 +20,13 @@ The CANFAR computing resources are currently provided as an [OpenStack](http://w
 
 ### Before you start
 
-You will need to [register](http://apps.canfar.net/canfar/login.html) to CANFAR. The CANFAR team will take care of your registration to Compute Canada infrastructure.
+You will need to [register](http://apps.canfar.net/canfar/auth/request.html) to CANFAR. The CANFAR team will take care of your registration to Compute Canada infrastructure.
 
 ### Managing your resources
 
 #### With the user interface
 The OpenStack dashboard is a web interface to manage your resources for your persistent computing resources.
-Compute Canada has a visual [quick start guide](https://www.westgrid.ca/support/quickstart/Nefos) to show you how to use it.
+Compute Canada has a visual [quick start guide](https://www.westgrid.ca/support/quickstart/arbutus) to show you how to use it.
 
 Some other tutorials that go into greater depth may be also be found at other OpenStack clouds, which all look similar.
 The [RAC documentation](http://www.cybera.ca/projects/cloud-resources/rapid-access-cloud/documentation) at Cybera is another good source.
@@ -38,4 +38,4 @@ To automate the management of your project resources, you can automate them usin
 If you need to run large processing jobs, we recommend to make use of the CANFAR batch services. The resources are much larger and more adequate than for the personal resources you get with your project. The [batch documentation](/docs/batch/) has the basics you need to help you using the CANFAR batch services.
 
 ### Tutorial
-A [tutorial](/docs/tutorial/) covering all the above use cases is also available. The documentation will show you how to setup Virtual Machines, install software and process some data, and storing results in your [VOSpace](/docs/vospace/).
+A [tutorial](/docs/quick_start/) covering all the above use cases is also available. The documentation will show you how to setup Virtual Machines, install software and process some data, and storing results in your [VOSpace](/docs/storage/).
