@@ -17,7 +17,7 @@ Before starting this example, you will need to have a CANAR/CADC account ([regis
 
 ## Resource Allocation
 
-Email support@canfar.net and include your account name, a rough amount of required resources (storage capacity and processin capabilitiesg), and a a few sentences of justification.  Your request will be reviewed and you will be contacted by our support group.
+Send an email to [CANFAR support](mailto:support@canfar.net) and include your account name, a rough amount of required resources (storage capacity and processin capabilitiesg), and a a few sentences of justification.  Your request will be reviewed and you will be contacted by our support group.
 
 ## Create your interactive Virtual Machine
 
@@ -51,8 +51,8 @@ Each tenant/project will typically have one public IP. If you have already alloc
 
 We will now launch a VM with Ubuntu 16.04. We support two distributions: Ubuntu LTS and CentOS VMs.
 
-* Switch to the **Images** window (left-hand column), and then click on the **Public** button at top right (it might be already selected.
-* Select ```canfar-ubuntu-16.04.4``` and click on the **Launch Instance** button on the right.
+* Switch to the **Images** window (left-hand column), and then click on the **Public** button at top right (it might be already selected).
+* Select ```canfar-ubuntu-16.04``` and click on the **Launch Instance** button on the right.
 * In the **Details** tab choose a meaningful **Instance Name**. **Flavor** is the hardware profile for the VM. ```c2-7.5gb-80``` provides the minimal requirements of 2 cores, 7.5GB or RAM for most VMs. Note that it provides an 80 GB *ephemeral disk* that will be used as scratch space for batch processing. **Availability Zone** should be left empty, and **Instance Count** 1.
 * In the **Access & Security** tab ensure that your public key is selected, and the ```default``` security group (with ssh rule added) is selected.
 * Finally, click the **Launch** button.
@@ -65,20 +65,7 @@ Before being able to ssh to your instance, you will need to attach the public IP
 * Select **Associate Floating IP** from the **More** pull-down menu.
 * Select the address that was allocated and the new VM instance in the **Port to be associated** menu, and click on **Associate**.
 
-Your ssh public key will have been injected into a **generic account** with a name like ```centos```, or ```ubuntu```, depending on the Linux distribution. To discover the name of this account, first attempt to connect as root:
-
-<div class="shell">
-
-{% highlight bash %}
-ssh root@[floating ip]
-{% endhighlight %}
-
-<code class="output">
-Please login as the user "ubuntu" rather than the user "root".
-</code>
-</div>
-
-<br />
+Your ssh public key will have been injected into a **generic account** with a name like ```centos```, or ```ubuntu```, depending on the Linux distribution.
 
 <div class="shell">
 
@@ -108,13 +95,13 @@ sudo apt install -y sextractor libcfitsio-bin
 
 ### Test the Software on the VM
 
-We are now ready to do a simple test. Let’s download a FITS image to our scratch space. When we instantiated the VM we chose a flavour with an ephemeral disk, which was automatically mounted in ```/mnt```. You want to access the ephemeral disk with a non-root user and create a work directory to mimic the batch processing environment (note that this will be done automatically for batch jobs):
+We are now ready to do a simple test. Let’s download a FITS image to our scratch space. When we instantiated the VM we chose a flavour with an ephemeral disk, which was automatically mounted in ```/mnt```. You want to access the ephemeral disk with a non-root user and create a scratch directory to mimic the batch processing environment (note that this will be done automatically for batch jobs):
 
 <div class="shell">
 
 {% highlight bash %}
-sudo mkdir /mnt/work
-sudo chmod 777 /mnt/work
+sudo mkdir /mnt/scratch
+sudo chmod 777 /mnt/scratch
 {% endhighlight %}
 
 </div>
@@ -124,9 +111,8 @@ Next, enter the directory, copy an astronomical image there, and run SExtractor 
 <div class="shell">
 
 {% highlight bash %}
-cd /mnt/work
+cd /mnt/scratch
 cp /usr/share/sextractor/default* .
-rm default.param
 echo 'NUMBER
 MAG_AUTO
 X_IMAGE
@@ -166,101 +152,51 @@ vcp 1056213p.cat vos:[username]
 
 Verify that the file is properly uploaded by pointing your browser to the [VOSpace browser interface](http://www.canfar.phys.uvic.ca/vosui).
 
+If you do not need batch processing, you can snapshot your VM (see below) and you are done. If you need batch, read along.
+
+### Install HTCondor for Batch
+
+Batch jobs are launched using a scheduler software  called [HTCondor](http://www.htcondor.org). HTCondor will dynamically launch jobs on the VMs (workers), connecting to the batch processing head node (the central manager). Your worker VM needs a HTCondor agent to connect the central manager. Run this script which will install HTCondor and tune the network on your VM instance:
+
+<div class="shell">
+
+{% highlight bash %}
+sudo canfar_batch_prepare
+{% endhighlight %}
+
+</div>
+
+### Snapshot (save) the VM Instance
+
+Now you want to save the VM with your software. Return to your browser on the OpenStack dashboard.
+
+* Save the state of your VM by navigating to the **Instances** window of the dashboard, and click on the **Create Snapshot** button to the right of your VM instance's name. After selecting a name for the snapshot of the VM instance, e.g., ```my_vm_image```, click the **Create Snapshot** button. It will eventually be saved and listed in the VM **Images** window, and will be available next time you launch an instance of that VM image.
+While the system is taking a snapshot of your VM, avoid doing anything on your VM.
+
 ## Automate all the above and run it in batch
 
-Now we want to automate the whole procedure above in a single script, in preparation for batch processing. Paste the following commands into one BASH script named ```~/do_catalog.bash``` on your VM:
+Now we want to automate the whole procedure. Paste the following commands into one BASH script named ```~/do_catalog.bash```:
 
 <div class="shell">
 
 {% highlight bash %}
 #!/bin/bash
-source /home/[username]/.bashrc
-curl -L http://www.canfar.phys.uvic.ca/data/pub/CFHT/${1} | funpack -O ${1}.fits -
+id=$1
+curl -L http://www.canfar.phys.uvic.ca/data/pub/CFHT/${id} | funpack -O ${id}.fits -
 cp /usr/share/sextractor/default* .
 echo 'NUMBER
 MAG_AUTO
 X_IMAGE
 Y_IMAGE' > default.param
-sextractor ${1}.fits -CATALOG_NAME ${1}.cat
-getCert
-vcp ${1}.cat vos:[username]
+sextractor ${id}.fits -CATALOG_NAME ${id}.cat
+vcp ${id}.cat vos:[VOSpace]
 {% endhighlight %}
 
 </div>
 
-Remember to substitute [username] with your CANFAR user account.
-
-This script runs all the commands, one after the other, and takes only one parameter represented by by the shell variable `${1}`, the file ID of the CFHT exposure. Save your script and set it as executable:
-
-<div class="shell">
-
-{% highlight bash %}
-chmod +x ~/do_catalog.bash
-{% endhighlight %}
-
-</div>
-
-Now let's test the newly created script with a different file ID. The ```do_catalog.bash``` script will run on the local directory where it is launched from. Let's emulate a batch job and launch it from the ephemeral disk:
-
-<div class="shell">
-
-{% highlight bash %}
-cd /mnt/work
-~/do_catalog.bash 1056214p
-{% endhighlight %}
-
-</div>
-
-Just as we did in the previous manual test, verify the output, and check with the VOSpace web interface that the catalogue has been uploaded.
-
-Finally, make a copy of the script on your local machine so that it will be available for submitting batch jobs once the VM is shut down, e.g.,
-
-<div class="shell">
-
-{% highlight bash %}
-scp [username]@[floating_ip]:do_catalog.bash .
-{% endhighlight %}
-
-</div>
-
-### Install HTCondor for Batch
-
-Batch jobs are scheduled using a software package called [HTCondor](http://www.htcondor.org). HTCondor will dynamically launch jobs on the VMs (workers), connecting to the batch processing head node (the central manager). In order to install HTCondor (which provides a minimal HTCondor daemon to execute jobs) run this script which will install HTCondor for you on your VM instance:
-
-<div class="shell">
-
-{% highlight bash %}
-sudo bash canfar_batch_prepare
-{% endhighlight %}
-
-</div>
-
-
-### Snapshot (save) the VM Instance
-
-Now we want to save our work. Return to your browser on the OpenStack dashboard.
-
-* Save the state of your VM by navigating to the **Instances** window of the dashboard, and click on the **Create Snapshot** button to the right of your VM instance's name. After selecting a name for the snapshot of the VM instance, e.g., ```my_vm_image```, click the **Create Snapshot** button. It will eventually be saved and listed in the VM **Images** window, and will be available next time you launch an instance of that VM image.
-
-### Shutdown the VM Instance
-
-* In the **Instances** window, select ```Terminate Instance``` in the **More** pull-down menu, and confirm.
-
-
-We are now are ready to launch batch processing jobs creating catalogues of many CFHT Megacam images and uploading the catalogues to VOSpace.
+Remember to substitute [VOSpace] with your CANFAR VOSPace name that you requested, often this is your CANFAR username.
 
 ### Write your batch processing job submission
-
-Assuming you have the `do_catalog.bash` script written above on your local desktop, copy it to the CANFAR batch host, and then log into the batch host:
-
-<div class="shell">
-
-{% highlight bash %}
-scp docatalog.bash [username]@batch.canfar.net:
-ssh [username]@batch.canfar.net
-{% endhighlight %}
-
-</div>
 
 Let's write a submission file that will transfer the `do_catalog.bash` script to the execution host. The execution host will be an instance of your snapshot VM image with 4 cores, and for each given CADC CFHT file id, will run a job on one of the core. The job will consist of running your script for 4 CFHT images with the file IDs 1056215p, 1056216p, 1056217p, and 1056218p. For this tutorial you will modify the configuration file listed below. Fire up your favorite editor and paste the following text into a submission file:
 
@@ -324,7 +260,7 @@ canfar_submit myjobs.sub my_vm_image c4-15gb-83
 
 </div>
 
-```my_vm_image``` is the name of the snapshot you used during the VM configuration above, and ```c4-15gb-83``` is the flavor for the VM(s) that will execute the jobs. If you wish to use a different flavor, they are visible through the dashboard when [launching an instance](#launch-a-vm-instance), or using the [nova command-line client](../cli/#launch-the-instance).
+```my_vm_image``` is the name of the snapshot you used during the VM configuration above, and ```c4-15gb-83``` is the flavor for the VM(s) that will execute the jobs. If you wish to use a different flavor, they are visible through the dashboard when [launching an instance](#launch-a-vm-instance), or using the [nova command-line client](../cli/#launch-the-instance): ```nova flavor-list```.
 
 After submitting, wait a couple of minutes. Check where your jobs stand in the queue:
 
@@ -348,4 +284,16 @@ condor_status -submitter
 
 Once you have no more jobs in the queue, check the logs and output files `myjobs.*` on the batch host, and check on your VOSpace browser. All 4 of the generated catalogues should have been uploaded.
 
+If you do need your VM anymore, you can terminate it from the OpenStack dashboard.
 You are done!
+
+## Helpful CANFAR commands and VM maintenance
+
+Once your VM is built, the responsibility is yours to maintain and update software. There are a few scripts you can run, all of them come with a ```--help```:
+
+* ```canfar_batch_prepare```: prepare a VM for batch by installing HTCondor and some network tuning
+* ```canfar_setup_scratch```: simple script to authorize a scratch space on ```/mnt/scratch```
+* ```canfar_create_user```: automatically create a ```${HOME}/.netrc```` file to help with VOSpace interactions
+* ```canfar_cert -u [username]```: try to get a cert by various methods
+* ```canfar_dotnetrc```: update / create a ```${HOME}/.netrc```` file to help with VOSpace access
+* ```canfar_update```: update all the CANFAR scripts and VOSpace clients

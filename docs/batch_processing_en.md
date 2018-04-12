@@ -16,6 +16,10 @@ The CANFAR scheduling system is orchestrated with the [HTCondor](http://www.htco
 
 For a typical CANFAR user, `HTCondor` will be similar use as other scheduling software that can be found on High Performance Computing platforms, such as PBS/Torque, Sun Grid Engine, or Slurm. Most users will not have to care about the cloud scheduler since it runs in the background launching Virtual Machines (VMs) while monitoring the jobs queues, but HTCondor is important to understand in order to submit and manage jobs.
 
+## Prepare a VM for Batch
+
+Batch jobs run on VMs. There can be multiple batch jobs per VM. By default batch jobs run on a scratch directory, and with an anonymous user. Each job is isolated, and a CANFAR batch job needs to have a VM specificied. VMs can also be shared among user. If the VM is 
+
 ## Writing a Batch Job
 
 Running a job with CANFAR means executing a program on a Virtual Machine. So first thing is to write a script that HTCondor will forward to the VM and execute it. It has to be a local executable. For example, if one wants to execute the `echo` command on the VM, the local script could contain:
@@ -29,7 +33,7 @@ echo $*
 
 </div>
 
-Let's name the local script `myexec.bash`. We now have to choose a machine that will execute the transfered script. Let's assume a VM image is called `my_vm_image` has been created following the [tutorial]({{site.basepath}}/docs/tutorial). Now to execute the command `ls` we need the smallest possible resource flavour that can boot the `my_vm_image` VM, that is `c1-7.5gb-30`. Open your favorite editor, and write a job file `myjob.jdl`.
+Let's name the local script `myexec.bash`. We now have to choose a machine that will execute the transfered script. Let's assume a VM image is called `my_vm_image` has been created following the [tutorial]({{site.basepath}}/docs/quick_start). Now to execute the command `ls` we need the smallest possible resource flavour that can boot the `my_vm_image` VM, that is `c2-7.5gb-80`. Open your favorite editor, and write a job file `myjob.sub`.
 
 A typical job will be like this:
 
@@ -102,7 +106,7 @@ Now to submit the job, there is a special wrapper script that will share your VM
 <div class="shell">
 
 {% highlight bash %}
-canfar_submit myjob.jdl my_vm_image c8-30gb-380
+canfar_submit myjob.sub my_vm_image c8-30gb-380
 {% endhighlight %}
 
 </div>
