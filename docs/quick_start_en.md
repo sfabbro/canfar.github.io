@@ -57,7 +57,7 @@ We will now launch a VM with Ubuntu 16.04. We support two distributions: Ubuntu 
 
 * Switch to the **Images** window (left-hand column), and then click on the **Public** button at top right (it might be already selected).
 * Select ```canfar-ubuntu-16.04``` and click on the **Launch Instance** button on the right.
-* In the **Details** tab choose a meaningful **Instance Name**. **Flavor** is the hardware profile for the VM. ```c2-7.5gb-80``` provides the minimal requirements of 2 cores, 7.5GB or RAM for most VMs. Note that it provides an 80 GB *ephemeral disk* that will be used as scratch space for batch processing. **Availability Zone** should be left empty, and **Instance Count** 1.
+* In the **Details** tab choose a meaningful **Instance Name**. **Flavor** is the hardware profile for the VM. ```c2-7.5gb-80``` provides the minimal requirements of 2 cores, 7.5GB RAM for most VMs, and an 80 GB *ephemeral disk* that will be used as scratch space. The flavours starting with `p` do not have scratch space. **Availability Zone** should be left empty, and **Instance Count** 1.
 * In the **Access & Security** tab ensure that your public key is selected, and the ```default``` security group (with ssh rule added) is selected.
 * Finally, click the **Launch** button.
 
@@ -109,6 +109,9 @@ sudo chmod 777 /mnt/scratch
 {% endhighlight %}
 
 </div>
+
+Note: You will notice that running those `sudo` commands tells you something like:`sudo: unable to resolve host [name of your VM]`. his is an issue with the default cloud service on OpenStack not updating the hostname of your VM. It is a harmless warning, if this annoying for you, edit the `/etc/hosts` file with `sudo` and add this line:
+``` 127.0.0.1 [name of your VM]```.
 
 Next, enter the directory, copy an astronomical image there, and run SExtractor on it:
 
@@ -247,9 +250,13 @@ Queue
 
 </div>
 
-Save the submission file as `myjobs.sub`.
+Save the submission file as `~/myjobs.sub`.
 
 ### Submit the batch jobs
+
+You will need two authorizations to launch the batch jobs:
+* to access your VM on your tenant
+* to access your VOSpace
 
 Source the OpenStack RC tenant file, and enter your CANFAR password. This sets environment variables used by OpenStack (only required once per login session):
 
@@ -263,6 +270,8 @@ Source the OpenStack RC tenant file, and enter your CANFAR password. This sets e
 Please enter your OpenStack Password:
 </code>
 </div>
+
+Then create a certificate by running `getCert`. The submission process will propagate your generated certificate to the jobs at the proper locations on the VMs.
 
 You can then submit your jobs to the condor job pool:
 
