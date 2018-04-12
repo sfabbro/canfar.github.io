@@ -13,13 +13,15 @@ This quick start guide will demonstrate how to:
 * store files with the CANFAR VOSpace storage
 * launch batch processing jobs from the CANFAR batch host, using VMs created in the previous step
 
-Before starting this example, you will need to have a CANAR/CADC account ([register](http://apps.canfar.net/canfar/auth/request.html)) and you will need to request a CANFAR resource allocation. The CANFAR team will take care of your registration to Compute Canada infrastructure.
-
 ## Resource Allocation
 
-Send an email to [CANFAR support](mailto:support@canfar.net) and include your account name, a rough amount of required resources (storage capacity and processin capabilitiesg), and a a few sentences of justification.  Your request will be reviewed and you will be contacted by our support group. You should then be in possesion of:
-* [VOSpace]: the short name of the VOSpace you have access to.
-* [CADC username]: your CADC username.
+Before starting this example, you will need to have a CADC account ([register](http://apps.canfar.net/canfar/auth/request.html)) and you will need to request a CANFAR resource allocation. The CANFAR team will take care of your registration to Compute Canada infrastructure.
+Send an email to [CANFAR support](mailto:support@canfar.net) and include your CADC account name, a rough amount of required resources (storage capacity and processin capabilitiesg), and a a few sentences of justification.  Your request will be reviewed and you will be contacted by our support group.
+
+Once registered, make note of your:
+* ```[CADC username]```: your CADC username
+* ```[VOSpace]```: the short name of the VOSpace you have access to
+* ```[tenant]```: the OpenStack tenant name you have access to 
 
 ## Create your interactive Virtual Machine
 
@@ -97,7 +99,7 @@ sudo apt install -y sextractor libcfitsio-bin
 
 ### Test the Software on the VM
 
-We are now ready to do a simple test. Let’s download a FITS image to our scratch space. When we instantiated the VM we chose a flavour with an ephemeral disk, which was automatically mounted in ```/mnt```. You want to access the ephemeral disk with a non-root user and create a scratch directory to mimic the batch processing environment (note that this will be done automatically for batch jobs):
+We are now ready to do a simple test. Let’s download a FITS image to our scratch space. When we instantiated the VM we chose a flavour with an ephemeral disk, which was automatically mounted on ```/mnt```. You want to access the ephemeral disk with a non-root user and create a scratch directory to mimic the batch processing environment (note that this will be done automatically for batch jobs):
 
 <div class="shell">
 
