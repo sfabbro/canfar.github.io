@@ -17,11 +17,13 @@ Before starting this example, you will need to have a CANAR/CADC account ([regis
 
 ## Resource Allocation
 
-Send an email to [CANFAR support](mailto:support@canfar.net) and include your account name, a rough amount of required resources (storage capacity and processin capabilitiesg), and a a few sentences of justification.  Your request will be reviewed and you will be contacted by our support group.
+Send an email to [CANFAR support](mailto:support@canfar.net) and include your account name, a rough amount of required resources (storage capacity and processin capabilitiesg), and a a few sentences of justification.  Your request will be reviewed and you will be contacted by our support group. You should then be in possesion of:
+* [VOSpace]: the short name of the VOSpace you have access to.
+* [CADC username]: your CADC username.
 
 ## Create your interactive Virtual Machine
 
-To access and manage your VMs with OpenStack, we suggest using the  dashboard at Compute Canada. [Log into the dashboard](https://west.cloud.computecanada.ca). Provide your CANFAR username, adding a ```-canfar``` suffix, e.g, ```janesmith-canfar```, and your usual CANFAR password. We will refer the CANFAR username (excluding the ```-canfar``` suffix which is only used for logging into the dashboard) as ```[username]``` throughout this document.
+To access and manage your VMs with OpenStack, we suggest using the  dashboard at Compute Canada. [Log into the dashboard](https://west.cloud.computecanada.ca). Provide your ```[CADC username]```, adding a ```-canfar``` suffix, e.g, ```janesmith-canfar```, and your usual CADC password.
 
 Each resource allocation corresponds to an OpenStack **tenant** or **project** (these two names are used interchangeably). A user may be a member of multiple tenants, and a tenant usually has multiple users. A pull-down menu near the top-left allows you to select between the different tenants that you are a member of.
 
@@ -127,7 +129,7 @@ The image `1056213p.fits` is a Multi-Extension FITS file with 36 extensions, eac
 
 ## Store results on the CANFAR VOSpace
 
-All data stored on the the ephemeral disk since the last time it was saved are normally **wiped out** when the VM shuts down). We will use the [CANFAR VOSpace](/docs/vospace/) to store the result.
+All data stored on the the ephemeral disk since the last time it was saved are normally **wiped out** when the VM shuts down). We will use the [CANFAR VOSpace](/docs/storagee/) to store the result.
 We want to store the output catalogue `1056213p.cat` at a persistent, externally-accessible location. We will use the CANFAR VOSpace for this purpose. To store anything on the CANFAR VOSpace from a command line, you will need the CANFAR VOSpace client which is already installed.
 
 For an automated procedure to access VOSpace on your behalf, your proxy authorization must be present on the VM. You can accomplish this using a `.netrc` file that contains your CANFAR user name and password, and the command **getCert** can obtain an *X509 Proxy Certificate* using that username/password combination without any further user interaction. The commands below will create the file.
@@ -145,7 +147,7 @@ Let's check that the VOSpace client works by copying the results to your VOSpace
 <div class="shell">
 
 {% highlight bash %}
-vcp 1056213p.cat vos:[username]
+vcp 1056213p.cat vos:[VOSpace]
 {% endhighlight %}
 
 </div>
@@ -267,7 +269,7 @@ After submitting, wait a couple of minutes. Check where your jobs stand in the q
 <div class="shell">
 
 {% highlight bash %}
-condor_q [username]
+condor_q [CADC username]
 {% endhighlight %}
 
 </div>
@@ -293,7 +295,9 @@ Once your VM is built, the responsibility is yours to maintain and update softwa
 
 * ```canfar_batch_prepare```: prepare a VM for batch by installing HTCondor and some network tuning
 * ```canfar_setup_scratch```: simple script to authorize a scratch space on ```/mnt/scratch```
-* ```canfar_create_user```: automatically create a ```${HOME}/.netrc```` file to help with VOSpace interactions
-* ```canfar_cert -u [username]```: try to get a cert by various methods
+* ```canfar_create_user [username]```: create a user with ```[username]``` on the VM and propage ssh public key.
+* ```canfar_cert -u [CADC username]```: try hard to get a CANFAR proxy certificate by various methods
 * ```canfar_dotnetrc```: update / create a ```${HOME}/.netrc```` file to help with VOSpace access
 * ```canfar_update```: update all the CANFAR scripts and VOSpace clients
+
+You can find all these commands on ```/usr/local/bin```, or at the [GitHub](https://github.com/canfar/canfarproc/tree/master/worker/bin) source.
