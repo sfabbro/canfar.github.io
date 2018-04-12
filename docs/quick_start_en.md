@@ -131,7 +131,7 @@ The image `1056213p.fits` is a Multi-Extension FITS file with 36 extensions, eac
 
 ## Store results on the CANFAR VOSpace
 
-All data stored on the the ephemeral disk since the last time it was saved are normally **wiped out** when the VM shuts down). We will use the [CANFAR VOSpace](/docs/storagee/) to store the result.
+All data stored on the the ephemeral disk since the last time it was saved are normally **wiped out** when the VM shuts down). We will use the [CANFAR VOSpace](/docs/storage/) to store the result.
 We want to store the output catalogue `1056213p.cat` at a persistent, externally-accessible location. We will use the CANFAR VOSpace for this purpose. To store anything on the CANFAR VOSpace from a command line, you will need the CANFAR VOSpace client which is already installed.
 
 For an automated procedure to access VOSpace on your behalf, your proxy authorization must be present on the VM. You can accomplish this using a `.netrc` file that contains your CANFAR user name and password, and the command **getCert** can obtain an *X509 Proxy Certificate* using that username/password combination without any further user interaction. The commands below will create the file.
@@ -179,7 +179,17 @@ While the system is taking a snapshot of your VM, avoid doing anything on your V
 
 ## Automate all the above and run it in batch
 
-Now we want to automate the whole procedure. Paste the following commands into one BASH script named ```~/do_catalog.bash```:
+Now we want to automate the whole procedure as a batch script. Log into the batch head node:
+
+<div class="shell">
+
+{% highlight bash %}
+ssh [CADC username]@batch.canfar.net
+{% endhighlight %}
+
+</div>
+
+Paste the following commands into one BASH script named ```~/do_catalog.bash```:
 
 <div class="shell">
 
@@ -198,7 +208,7 @@ vcp ${id}.cat vos:[VOSpace]
 
 </div>
 
-Remember to substitute [VOSpace] with your CANFAR VOSPace name that you requested, often this is your CANFAR username.
+Remember to substitute ```[VOSpace]``` with your CANFAR VOSPace name that you requested, often this is your ```[CADC username]```.
 
 ### Write your batch processing job submission
 
@@ -288,9 +298,6 @@ condor_status -submitter
 
 Once you have no more jobs in the queue, check the logs and output files `myjobs.*` on the batch host, and check on your VOSpace browser. All 4 of the generated catalogues should have been uploaded.
 
-If you do need your VM anymore, you can terminate it from the OpenStack dashboard.
-You are done!
-
 ## Helpful CANFAR commands and VM maintenance
 
 Once your VM is built, the responsibility is yours to maintain and update software. There are a few scripts you can run, all of them come with a ```--help```:
@@ -303,3 +310,10 @@ Once your VM is built, the responsibility is yours to maintain and update softwa
 * ```canfar_update```: update all the CANFAR scripts and VOSpace clients
 
 You can find all these commands on ```/usr/local/bin```, or at the [GitHub](https://github.com/canfar/canfarproc/tree/master/worker/bin) source.
+
+
+If you do need your VM anymore, you can terminate it from the OpenStack dashboard.
+You are done!
+
+
+
