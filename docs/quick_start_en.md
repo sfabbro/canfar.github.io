@@ -104,8 +104,7 @@ We are now ready to do a simple test. Let’s download a FITS image to our scrat
 <div class="shell">
 
 {% highlight bash %}
-sudo mkdir /mnt/scratch
-sudo chmod 777 /mnt/scratch
+sudo canfar_setup_scratch
 {% endhighlight %}
 
 </div>
@@ -113,7 +112,7 @@ sudo chmod 777 /mnt/scratch
 Note: You will notice that running those `sudo` commands tells you something like:`sudo: unable to resolve host [name of your VM]`. his is an issue with the default cloud service on OpenStack not updating the hostname of your VM. It is a harmless warning, if this annoying for you, edit the `/etc/hosts` file with `sudo` and add this line:
 ``` 127.0.0.1 [name of your VM]```.
 
-Next, enter the directory, copy an astronomical image there, and run SExtractor on it:
+Next, enter the scratch directory, copy an astronomical image there, and run SExtractor on it:
 
 <div class="shell">
 
