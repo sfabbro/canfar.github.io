@@ -7,32 +7,32 @@ permalink: /en/docs/quick_start/
 ---
 # Quick Start: Build a star detection pipeline
 
-This quick start guide will demonstrate how to:
+This quick start guide will demonstrate how to create a simple detection script on a CANFAR Virtual Machine (VM) and launch it with batch jobs. It will go over:
 
-* create, configure, and interact with OpenStack cloud and CANFAR Virtual Machines (VMs)
+* create, configure, and interact with OpenStack cloud and CANFAR VMs
 * store files with the CANFAR VOSpace storage
 * launch batch processing jobs from the CANFAR batch host, using VMs created in the previous step
 
 ## Resource Allocation
 
 Before starting this example, you will need to have a CADC account ([register](http://apps.canfar.net/canfar/auth/request.html)) and you will need to request a CANFAR resource allocation. The CANFAR team will take care of your registration to Compute Canada infrastructure.
-Send an email to [CANFAR support](mailto:support@canfar.net) and include your CADC account name, a rough amount of required resources (storage capacity and processin capabilitiesg), and a a few sentences of justification.  Your request will be reviewed and you will be contacted by our support group.
+Send an email to [CANFAR support](mailto:support@canfar.net) and include your CADC account name, with a rough amount of required resources (storage capacity and processin capabilitiesg), and a a few sentences of justification.  Your request will be reviewed and you will be contacted by our support group.
 
 Once registered, make note of your:
 * ```[CADC username]```: your CADC username
-* ```[VOSpace]```: the short name of the VOSpace you have access to
-* ```[tenant]```: the OpenStack tenant name you have access to 
+* ```[VOSpace]```: the short name of the VOSpace
+* ```[tenant]```: the OpenStack tenant name
 
 ## Create your interactive Virtual Machine
 
-To access and manage your VMs with OpenStack, we suggest using the  dashboard at Compute Canada. [Log into the dashboard](https://west.cloud.computecanada.ca). Provide your ```[CADC username]```, adding a ```-canfar``` suffix, e.g, ```janesmith-canfar```, and your usual CADC password.
+To access and manage your VM with OpenStack, we suggest using the  dashboard at Compute Canada. [Log into the dashboard](https://west.cloud.computecanada.ca). Provide your ```[CADC username]```, adding a ```-canfar``` suffix, e.g, ```janesmith-canfar```, and your usual CADC password.
 
-Each resource allocation corresponds to an OpenStack **tenant** or **project** (these two names are used interchangeably). A user may be a member of multiple tenants, and a tenant usually has multiple users. A pull-down menu near the top-left allows you to select between the different tenants that you are a member of.
+Each resource allocation corresponds to an OpenStack **tenant** or **project** (these two names are used interchangeably). A user may be a member of multiple tenants, and a tenant usually has multiple users. A pull-down menu near the top-left allows you to select between the different tenants that you are a member of. You can go over [these instructions](https://docs.computecanada.ca/wiki/Creating_a_Linux_VM) which we summarize in the 4 next sections.
 
 ### Allow ssh access to your VM
 
 * Click on **Access & Security** (left column of page), and then the **Security Groups** tab.
-* Click on the **Manage Rules** button next to the default group. If you see a rule with **Ingress** direction, **22(SSH)** Port Range and **0.0.0.0/0 (CIDR)** , then that means someone in your tenant already  opened the ssh port for you. If you don't see it, add a new rule following step.
+* Click on the **Manage Rules** button next to the default group. If you see a rule with **Ingress** direction, **22(SSH)** Port Range and **0.0.0.0/0 (CIDR)** , then that means someone in your tenant already opened the ssh port for you. If you don't see it, add a new rule following step.
 * Click on the **+ Add Rule** button near the top-right. Select **SSH** at the bottom of the **Rule** pull-down menu, and then click on **Add** at the bottom-right. **This operation is only required once for the initial setup of the tenant**.
 
 ### Import an ssh public key
@@ -45,11 +45,11 @@ Access to VMs is facilitated by SSH key pairs rather than less secure user name 
 
 ### Allocate a public IP address
 
-You will need to connect to your VM via a public IP.
+You will need to connect to your VM with ssh via a public IP.
 
 * Click on the **Floating IPs** tab. If there are no IPs listed, click on the **Allocate IP to Project** button at the top-right.
 
-Each tenant/project will typically have one public IP. If you have already allocated all of your IPs, this button will read "Quota Exceeded".
+Each CANFAR tenant/project typically has one public IP. If you have already allocated all of your IPs, this button will read **Quota Exceeded**.
 
 ### Launch a VM
 
@@ -63,7 +63,7 @@ We will now launch a VM with Ubuntu 16.04. We support two distributions: Ubuntu 
 
 ### Connect to the VM
 
-After launching the VM you are returned to the **Instances** window. You can check the VM status once booted by clicking on its name (the **Console** tab of this window provides a basic console in which you can monitor the boot process).
+After launching the VM you are returned to the **Instances** window. You can check the VM status once booted by clicking on its name, wait for the power state to say **Running**.
 Before being able to ssh to your instance, you will need to attach the public IP address to it.
 
 * Select **Associate Floating IP** from the **More** pull-down menu.
@@ -84,7 +84,7 @@ ssh ubuntu@[floating ip]
 The default operating system has only a minimal set of packages. For this example, we will use:
 
 * the [SExtractor](http://www.astromatic.net/software/sextractor) package to create catalogues of stars and galaxies.
-* We also need to read FITS images. Most FITS images from CADC come Rice-compressed with an `fz` extension. SExtractor only reads uncompressed images, so we also need the ```funpack``` utility to uncompress the incoming data. The ```funpack``` executable is included in the package ```libcfitsio-bin``` in Ubuntu.
+* We also need to read FITS images. Most FITS images from CADC come Rice-compressed with an `fz` extension. SExtractor only reads uncompressed images, so we also need the ```funpack``` utility to uncompress the incoming data. In Ubuntu, the ```funpack``` utility is included in the package ```libcfitsio-bin```.
 
 Let's install them both system wide after a fresh update of the Ubuntu repositories:
 
@@ -99,7 +99,7 @@ sudo apt install -y sextractor libcfitsio-bin
 
 ### Test the Software on the VM
 
-We are now ready to do a simple test. Let’s download a FITS image to our scratch space. When we instantiated the VM we chose a flavour with an ephemeral disk, which was automatically mounted on ```/mnt```. You want to access the ephemeral disk with a non-root user and create a scratch directory to mimic the batch processing environment (note that this will be done automatically for batch jobs):
+We are now ready to do a simple test. Let’s download a FITS image to our scratch space. When we instantiated the VM we chose a flavour with an ephemeral disk, which was automatically mounted on ```/mnt```. You want to access the ephemeral disk with a non-root user and create a scratch directory to mimic the batch processing environment (the scratch space setup will be done automatically for batch jobs):
 
 <div class="shell">
 
@@ -109,7 +109,7 @@ sudo canfar_setup_scratch
 
 </div>
 
-Note: You will notice that running those `sudo` commands tells you something like:`sudo: unable to resolve host [name of your VM]`. his is an issue with the default cloud service on OpenStack not updating the hostname of your VM. It is a harmless warning, if this annoying for you, edit the `/etc/hosts` file with `sudo` and add this line:
+Note: You will notice that running those `sudo` commands tells you something like:`sudo: unable to resolve host [name of your VM]`. This is an issue with the default cloud service on OpenStack not updating the hostname of your VM. It is a harmless warning, if this annoying for you, edit the `/etc/hosts` file with `sudo` and add this line:
 ``` 127.0.0.1 [name of your VM]```.
 
 Next, enter the scratch directory, copy an astronomical image there, and run SExtractor on it:
@@ -133,8 +133,8 @@ The image `1056213p.fits` is a Multi-Extension FITS file with 36 extensions, eac
 
 ## Store results on the CANFAR VOSpace
 
-All data stored on the the ephemeral disk since the last time it was saved are normally **wiped out** when the VM shuts down). We will use the [CANFAR VOSpace](/docs/storage/) to store the result.
-We want to store the output catalogue `1056213p.cat` at a persistent, externally-accessible location. We will use the CANFAR VOSpace for this purpose. To store anything on the CANFAR VOSpace from a command line, you will need the CANFAR VOSpace client which is already installed.
+All data stored on the the ephemeral disk since the last time it was saved are normally **wiped out** when the VM shuts down). We will use the [VOSpace](/docs/storage/) to store the result.
+We want to store the output catalogue `1056213p.cat` at a persistent, externally-accessible location. We will use the CANFAR VOSpace for this purpose. To store files on the CANFAR VOSpace from a command line, you will use the CANFAR VOSpace client which is already installed on CANFAR VMs.
 
 For an automated procedure to access VOSpace on your behalf, your proxy authorization must be present on the VM. You can accomplish this using a `.netrc` file that contains your CANFAR user name and password, and the command **getCert** can obtain an *X509 Proxy Certificate* using that username/password combination without any further user interaction. The commands below will create the file.
 
@@ -158,11 +158,11 @@ vcp 1056213p.cat vos:[VOSpace]
 
 Verify that the file is properly uploaded by pointing your browser to the [VOSpace browser interface](http://www.canfar.phys.uvic.ca/vosui).
 
-If you do not need batch processing, you can snapshot your VM (see below) and you are done. If you need batch, read along.
+If you do not need batch processing, you can snapshot your VM (see below) and you are done. If you need batch, carry on.
 
-### Install HTCondor for Batch
+### Preparing the VM for Batch Processing
 
-Batch jobs are launched using a scheduler software  called [HTCondor](http://www.htcondor.org). HTCondor will dynamically launch jobs on the VMs (workers), connecting to the batch processing head node (the central manager). Your worker VM needs a HTCondor agent to connect the central manager. Run this script which will install HTCondor and tune the network on your VM instance:
+Batch jobs are launched using the [HTCondor](http://www.htcondor.org) scheduling software which launch jobs, and [cloud scheduler](http://www.cloudscheduler.org) which launch VMs according to jobs. HTCondor will dynamically launch jobs on the VMs (workers), connecting to the batch processing head node (the central manager). Your worker VM needs a HTCondor agent to connect the central manager. Run this script which will install HTCondor and tune the network on your VM instance:
 
 <div class="shell">
 
@@ -176,12 +176,12 @@ sudo canfar_batch_prepare
 
 Now you want to save the VM with your software. Return to your browser on the OpenStack dashboard.
 
-* Save the state of your VM by navigating to the **Instances** window of the dashboard, and click on the **Create Snapshot** button to the right of your VM instance's name. After selecting a name for the snapshot of the VM instance, e.g., ```my_vm_image```, click the **Create Snapshot** button. It will eventually be saved and listed in the VM **Images** window, and will be available next time you launch an instance of that VM image.
+* Save the state of your VM by navigating to the **Instances** window of the dashboard, and click on the **Create Snapshot** button to the right of your VM instance's name. After selecting a name for the snapshot of the VM instance, e.g., ```quick_start-0.1```, click the **Create Snapshot** button. It will eventually be saved and listed in the VM **Images** window, and will be available next time you launch an instance of that VM image.
 While the system is taking a snapshot of your VM, avoid doing anything on your VM.
 
-## Automate all the above and run it in batch
+## Make a script to automate all the above and run it in batch
 
-Now we want to automate the whole procedure as a batch script. Log into the batch head node:
+Now we want to automate the whole procedure as a batch script. ssh into the CANFAR batch cluster:
 
 <div class="shell">
 
@@ -210,7 +210,7 @@ vcp ${id}.cat vos:[VOSpace]
 
 </div>
 
-Remember to substitute ```[VOSpace]``` with your CANFAR VOSPace name that you requested, often this is your ```[CADC username]```.
+Remember to substitute ```[VOSpace]``` with the VOSPace name that you requested (often this is your ```[CADC username]```).
 
 ### Write your batch processing job submission
 
@@ -249,7 +249,7 @@ Queue
 
 </div>
 
-Save the submission file as `~/myjobs.sub`.
+Save the submission file as `~/quick_start.sub`.
 
 ### Submit the batch jobs
 
@@ -277,12 +277,12 @@ You can then submit your jobs to the condor job pool:
 <div class="shell">
 
 {% highlight bash %}
-canfar_submit myjobs.sub my_vm_image c4-15gb-83
+canfar_submit quick_start.sub quick_start-0.1 c4-15gb-83
 {% endhighlight %}
 
 </div>
 
-```my_vm_image``` is the name of the snapshot you used during the VM configuration above, and ```c4-15gb-83``` is the flavor for the VM(s) that will execute the jobs. If you wish to use a different flavor, they are visible through the dashboard when [launching an instance](#launch-a-vm-instance), or using the [nova command-line client](../cli/#launch-the-instance): ```nova flavor-list```.
+```quick_start-0.1``` is the name of the snapshot you used during the VM configuration above, and ```c4-15gb-83``` is the flavor for the VM(s) that will execute the jobs. If you wish to use a different flavor, they are visible through the dashboard when [launching an instance](#launch-a-vm-instance), or using the [nova command line client](../cli/#launch-the-instance): ```nova flavor-list```.
 
 After submitting, wait a couple of minutes. Check where your jobs stand in the queue:
 
@@ -304,7 +304,7 @@ condor_status -submitter
 
 </div>
 
-Once you have no more jobs in the queue, check the logs and output files `myjobs.*` on the batch host, and check on your VOSpace browser. All 4 of the generated catalogues should have been uploaded.
+Once you have no more jobs in the queue, check the logs and output files `105621.*` on the batch host, and check on your VOSpace browser. All 4 of the generated catalogues should have been uploaded.
 
 ## Helpful CANFAR commands and VM maintenance
 
@@ -312,16 +312,12 @@ Once your VM is built, the responsibility is yours to maintain and update softwa
 
 * ```canfar_batch_prepare```: prepare a VM for batch by installing HTCondor and some network tuning
 * ```canfar_setup_scratch```: simple script to authorize a scratch space on ```/mnt/scratch```
-* ```canfar_create_user [username]```: create a user with ```[username]``` on the VM and propage ssh public key.
+* ```canfar_create_user [username]```: create a user with ```[username]``` on the VM and propagate ssh public key.
 * ```canfar_cert -u [CADC username]```: try hard to get a CANFAR proxy certificate by various methods
 * ```canfar_dotnetrc```: update / create a ```${HOME}/.netrc```` file to help with VOSpace access
 * ```canfar_update```: update all the CANFAR scripts and VOSpace clients
 
 You can find all these commands on ```/usr/local/bin```, or at the [GitHub](https://github.com/canfar/canfarproc/tree/master/worker/bin) source.
 
-
 If you do need your VM anymore, you can terminate it from the OpenStack dashboard.
 You are done!
-
-
-
