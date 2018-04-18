@@ -123,7 +123,8 @@ echo 'NUMBER
 MAG_AUTO
 X_IMAGE
 Y_IMAGE' > default.param
-curl -L http://www.canfar.phys.uvic.ca/data/pub/CFHT/1056213p | funpack -O 1056213p.fits -
+cadc-data get CFHT 1056213p 
+funpack -D 1056213p.fits.fz
 sextractor 1056213p.fits -CATALOG_NAME 1056213p.cat
 {% endhighlight %}
 
@@ -198,7 +199,8 @@ Paste the following commands into one BASH script named ```~/do_catalog.bash```:
 {% highlight bash %}
 #!/bin/bash
 id=$1
-curl -L http://www.canfar.phys.uvic.ca/data/pub/CFHT/${id} | funpack -O ${id}.fits -
+cadc-data get CFHT ${id}
+funpack -D ${id}.fits.fz
 cp /usr/share/sextractor/default* .
 echo 'NUMBER
 MAG_AUTO
